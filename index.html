@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profiles</title>
+  <style>
+    body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #eef2f7, #d9e4f5);
+  margin: 0;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.add-btn {
+  background-color: #5c6bc0;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(92, 107, 192, 0.3);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.add-btn:hover {
+  background-color: #3f51b5;
+  transform: translateY(-2px);
+}
+
+#profileContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  width: 100%;
+}
+
+.profile-card {
+  background-color: white;
+  width: 300px;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.profile-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #5c6bc0;
+  margin-bottom: 15px;
+  transition: transform 0.3s ease;
+}
+
+.profile-img:hover {
+  transform: scale(1.05);
+}
+
+h2 {
+  margin: 10px 0 5px;
+  font-size: 22px;
+  color: #333;
+}
+
+p.bio {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.contact-info {
+  text-align: left;
+  font-size: 14px;
+  color: #444;
+}
+
+.contact-info strong {
+  display: inline-block;
+  width: 70px;
+  color: #333;
+}
+
+a {
+  color: #5c6bc0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #3f51b5;
+  text-decoration: underline;
+}
+
+.btn-group {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.edit-btn {
+  background-color: #f0ad4e;
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #ec971f;
+}
+
+.delete-btn {
+  background-color: #d9534f;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #c9302c;
+}
+
+/* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 320px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease forwards;
+}
+
+.modal-content input,
+.modal-content textarea {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  transition: border-color 0.2s ease;
+}
+
+.modal-content input:focus,
+.modal-content textarea:focus {
+  border-color: #5c6bc0;
+  outline: none;
+}
+
+.modal-content button {
+  margin-top: 10px;
+  padding: 10px 16px;
+  background-color: #5c6bc0;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modal-content button:hover {
+  background-color: #3f51b5;
+}
+
+.image-preview {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #5c6bc0;
+  margin-top: 10px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Animations */
+@keyframes slideUp {
+  0% {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+  </style>
+</head>
+<body>
+
+  <button class="add-btn" onclick="openAddProfileModal()">➕ Add Profile</button>
+
+  <div id="profileContainer"></div>
+
+  <!-- Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h3 id="modalTitle">Edit Profile</h3>
+      <input type="text" id="editName" placeholder="Full Name" />
+      <textarea id="editBio" placeholder="Short Bio"></textarea>
+      <input type="email" id="editEmail" placeholder="Email" />
+      <input type="text" id="editPhone" placeholder="Phone" />
+      
+      <!-- Image upload input -->
+      <input type="file" id="editImageUrl" accept="image/*" onchange="previewImage(event)" />
+      
+      <!-- Preview image -->
+      <img id="imagePreview" class="image-preview" src="" alt="Image Preview" />
+
+      <button onclick="saveChanges()">Save</button>
+    </div>
+  </div>
+
+  <script>
+    let currentCard = null;
+    let isAdding = false;
+
+    // Load profiles from localStorage when the page is loaded
+    window.onload = function() {
+      loadProfiles();
+    };
+
+    function loadProfiles() {
+      const profiles = JSON.parse(localStorage.getItem('profiles')) || [];
+      profiles.forEach(profile => {
+        displayProfile(profile);
+      });
+    }
+
+    function saveProfiles() {
+      const profiles = [];
+      document.querySelectorAll('.profile-card').forEach(card => {
+        const profile = {
+          name: card.querySelector('.name').innerText,
+          bio: card.querySelector('.bio').innerText,
+          email: card.querySelector('.email').innerText,
+          phone: card.querySelector('.phone').innerText,
+          imageUrl: card.querySelector('.profile-img').src, // Save image URL
+        };
+        profiles.push(profile);
+      });
+      localStorage.setItem('profiles', JSON.stringify(profiles));
+    }
+
+    function deleteProfile(btn) {
+      const card = btn.closest('.profile-card');
+      card.remove();
+      saveProfiles(); // Save after deletion
+    }
+
+    function editProfile(btn) {
+      isAdding = false;
+      currentCard = btn.closest('.profile-card');
+      document.getElementById('modalTitle').innerText = 'Edit Profile';
+
+      document.getElementById('editName').value = currentCard.querySelector('.name').innerText;
+      document.getElementById('editBio').value = currentCard.querySelector('.bio').innerText;
+      document.getElementById('editEmail').value = currentCard.querySelector('.email').innerText;
+      document.getElementById('editPhone').value = currentCard.querySelector('.phone').innerText;
+      document.getElementById('imagePreview').src = currentCard.querySelector('.profile-img').src;
+
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function openAddProfileModal() {
+      isAdding = true;
+      currentCard = null;
+      document.getElementById('modalTitle').innerText = 'Add New Profile';
+
+      document.getElementById('editName').value = '';
+      document.getElementById('editBio').value = '';
+      document.getElementById('editEmail').value = '';
+      document.getElementById('editPhone').value = '';
+      document.getElementById('editImageUrl').value = '';
+      document.getElementById('imagePreview').src = '';
+
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function() {
+          document.getElementById('imagePreview').src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function saveChanges() {
+      const name = document.getElementById('editName').value;
+      const bio = document.getElementById('editBio').value;
+      const email = document.getElementById('editEmail').value;
+      const phone = document.getElementById('editPhone').value;
+      const imageUrl = document.getElementById('imagePreview').src;
+
+      if (isAdding) {
+        const newProfile = {
+          name,
+          bio,
+          email,
+          phone,
+          imageUrl,
+        };
+        displayProfile(newProfile);
+      } else if (currentCard) {
+        currentCard.querySelector('.name').innerText = name;
+        currentCard.querySelector('.bio').innerText = bio;
+        currentCard.querySelector('.email').innerText = email;
+        currentCard.querySelector('.email').href = "mailto:" + email;
+        currentCard.querySelector('.phone').innerText = phone;
+        currentCard.querySelector('.profile-img').src = imageUrl; // Update image
+      }
+
+      saveProfiles(); // Save after changes
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function displayProfile(profile) {
+      const newCard = document.createElement('div');
+      newCard.className = 'profile-card';
+      newCard.innerHTML = `
+        <img class="profile-img" src="${profile.imageUrl || 'https://i.pravatar.cc/100?u=${Math.random()}'}" alt="Profile Image" />
+        <h2 class="name">${profile.name}</h2>
+        <p class="bio">${profile.bio}</p>
+        <div class="contact-info">
+          <p><strong>Email:</strong> <a class="email" href="mailto:${profile.email}">${profile.email}</a></p>
+          <p><strong>Phone:</strong> <span class="phone">${profile.phone}</span></p>
+        </div>
+        <div class="btn-group">
+          <button class="btn edit-btn" onclick="editProfile(this)">Edit</button>
+          <button class="btn delete-btn" onclick="deleteProfile(this)">Delete</button>
+        </div>
+      `;
+      document.getElementById('profileContainer').appendChild(newCard);
+    }
+
+    // Close modal on outside click
+    window.onclick = function(e) {
+      const modal = document.getElementById('editModal');
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>
