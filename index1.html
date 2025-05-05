@@ -1,0 +1,694 @@
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Profile Dashboard with Image Upload and Navbar
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
+  <style>
+   body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #1f2937;
+    }
+    /* Image preview container */
+    #avatarPreview {
+      width: 110px;
+      height: 110px;
+      border-radius: 9999px;
+      object-fit: cover;
+      border: 5px solid #4f46e5; /* indigo-600 */
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+      margin-bottom: 0.75rem;
+      transition: box-shadow 0.3s ease;
+    }
+    #avatarPreview:hover {
+      box-shadow: 0 12px 30px rgba(79, 70, 229, 0.7);
+    }
+    /* Profile card custom */
+    .profile-card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.1),
+        0 10px 15px rgba(99, 102, 241, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .profile-card:hover {
+      transform: translateY(-8px);
+      box-shadow:
+        0 10px 15px rgba(0, 0, 0, 0.15),
+        0 20px 25px rgba(99, 102, 241, 0.4);
+      z-index: 10;
+    }
+    .profile-card::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, #4f46e5 0%, transparent 70%);
+      opacity: 0.1;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      border-radius: 1rem;
+      z-index: 0;
+    }
+    .profile-card:hover::before {
+      opacity: 0.25;
+    }
+    /* Buttons with gradient */
+    .btn-gradient-yellow {
+      background: linear-gradient(90deg, #facc15 0%, #ca8a04 100%);
+      box-shadow: 0 4px 8px rgba(250, 204, 21, 0.5);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+    .btn-gradient-yellow:hover {
+      background: linear-gradient(90deg, #ca8a04 0%, #a16207 100%);
+      box-shadow: 0 6px 12px rgba(161, 98, 7, 0.7);
+    }
+    .btn-gradient-red {
+      background: linear-gradient(90deg, #ef4444 0%, #b91c1c 100%);
+      box-shadow: 0 4px 8px rgba(239, 68, 68, 0.5);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+    .btn-gradient-red:hover {
+      background: linear-gradient(90deg, #b91c1c 0%, #7f1d1d 100%);
+      box-shadow: 0 6px 12px rgba(127, 29, 29, 0.7);
+    }
+    .btn-gradient-blue {
+      background: linear-gradient(90deg, #4f46e5 0%, #4338ca 100%);
+      box-shadow: 0 4px 8px rgba(79, 70, 229, 0.5);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+    .btn-gradient-blue:hover {
+      background: linear-gradient(90deg, #4338ca 0%, #3730a3 100%);
+      box-shadow: 0 6px 12px rgba(55, 48, 163, 0.7);
+    }
+    /* Scrollbar for main content */
+    main::-webkit-scrollbar {
+      width: 10px;
+    }
+    main::-webkit-scrollbar-track {
+      background: #e0e7ff;
+      border-radius: 10px;
+    }
+    main::-webkit-scrollbar-thumb {
+      background: #4f46e5;
+      border-radius: 10px;
+    }
+    /* Modal overlay blur */
+    #modalBackdrop {
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    /* Input focus ring custom */
+    input:focus, textarea:focus {
+      outline-offset: 2px;
+      outline-color: #4f46e5;
+      outline-style: solid;
+      outline-width: 2px;
+    }
+    /* Add subtle animation to modal */
+    #modalContent {
+      transform: translateY(-20px);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    #modalBackdrop:not(.hidden) #modalContent {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+ </head>
+ <body>
+  <!-- Navbar -->
+  <header class="bg-white bg-opacity-90 backdrop-blur-md shadow-lg sticky top-0 z-50">
+   <nav class="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12">
+    <div class="flex justify-between items-center h-16">
+     <div class="flex items-center space-x-4">
+      <i class="fas fa-user-circle text-4xl text-indigo-600 drop-shadow-lg">
+      </i>
+      <h1 class="text-3xl font-extrabold text-indigo-900 select-none tracking-wide">
+       Profile Dashboard
+      </h1>
+     </div>
+     <div class="hidden md:flex items-center space-x-6">
+      <a href="#profilesSection" class="text-indigo-700 font-semibold hover:text-indigo-900 transition">
+       Profiles
+      </a>
+      <button class="btn-gradient-blue px-5 py-2 rounded-lg font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-600 transition" id="addProfileBtn" type="button" aria-label="Add Profile" title="Add Profile">
+       <i class="fas fa-user-plus mr-2"></i> Add Profile
+      </button>
+      <button aria-label="Log out" class="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-700 hover:to-red-900 text-white px-5 py-2 rounded-lg shadow-lg focus:outline-none focus:ring-4 focus:ring-red-400 transition" id="logoutBtn" title="Log out" type="button">
+       <i class="fas fa-sign-out-alt text-lg">
+       </i>
+       <span class="font-semibold text-lg">
+        Log Out
+       </span>
+      </button>
+     </div>
+     <!-- Mobile menu button -->
+     <div class="md:hidden flex items-center">
+      <button aria-label="Open menu" class="text-indigo-700 hover:text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 rounded" id="mobileMenuBtn" type="button">
+       <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round">
+        </path>
+       </svg>
+      </button>
+     </div>
+    </div>
+   </nav>
+   <!-- Mobile menu -->
+   <div class="md:hidden bg-white bg-opacity-90 backdrop-blur-md shadow-lg border-t border-indigo-300 hidden" id="mobileMenu">
+    <nav class="px-6 py-4 space-y-3">
+     <a href="#profilesSection" class="block text-indigo-700 font-semibold hover:text-indigo-900 transition" id="mobileProfilesLink">
+      Profiles
+     </a>
+     <button class="w-full text-left btn-gradient-blue px-5 py-2 rounded-lg font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-600 transition" id="mobileAddProfileBtn" type="button" aria-label="Add Profile" title="Add Profile">
+      <i class="fas fa-user-plus mr-2"></i> Add Profile
+     </button>
+     <button aria-label="Log out" class="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-700 hover:to-red-900 text-white px-5 py-2 rounded-lg shadow-lg focus:outline-none focus:ring-4 focus:ring-red-400 transition" id="mobileLogoutBtn" title="Log out" type="button">
+      <i class="fas fa-sign-out-alt text-lg">
+      </i>
+      <span class="font-semibold text-lg">
+       Log Out
+      </span>
+     </button>
+    </nav>
+   </div>
+  </header>
+  <!-- Main content -->
+  <main aria-label="Profiles Section" class="max-w-7xl mx-auto p-10 space-y-10" id="profilesSection" tabindex="0">
+   <h2 class="text-4xl font-extrabold text-indigo-900 select-none tracking-wide drop-shadow-md">
+    Profiles
+   </h2>
+   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10" id="profiles">
+    <!-- Profiles will be rendered here -->
+   </div>
+  </main>
+  <!-- Modal backdrop -->
+  <div aria-labelledby="modalTitle" aria-modal="true" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" id="modalBackdrop" role="dialog">
+   <!-- Modal content -->
+   <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 relative" id="modalContent">
+    <h2 class="text-2xl font-extrabold mb-6 text-indigo-900 tracking-wide" id="modalTitle">
+     Edit Profile
+    </h2>
+    <form class="space-y-6" id="profileForm" novalidate="">
+     <div class="flex flex-col items-center">
+      <img alt="Avatar preview" aria-live="polite" class="shadow-lg" height="110" id="avatarPreview" src="https://storage.googleapis.com/a1aa/image/ee82f5ea-4dc7-49f7-2394-7216d123f08c.jpg" width="110"/>
+      <label class="cursor-pointer mt-3 inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-800 hover:from-indigo-800 hover:to-indigo-900 text-white rounded-full font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-500 transition" for="avatarUpload">
+       <i class="fas fa-upload mr-3 text-lg">
+       </i>
+       Upload Avatar
+      </label>
+      <input accept="image/*" aria-describedby="avatarUploadDesc" class="hidden" id="avatarUpload" name="avatarUpload" type="file"/>
+      <p class="text-gray-500 text-sm mt-1 select-none" id="avatarUploadDesc">
+       Supported formats: JPG, PNG, GIF
+      </p>
+      <p class="text-red-600 text-sm mt-1 hidden" id="avatarError" role="alert">
+       Please upload an image file.
+      </p>
+     </div>
+     <div>
+      <label class="block font-semibold mb-2 text-indigo-800 tracking-wide" for="name">
+       Name
+      </label>
+      <input aria-describedby="nameError" class="w-full border border-indigo-300 rounded-xl px-5 py-3 focus:outline-none focus:ring-4 focus:ring-indigo-400 focus:border-indigo-600 transition shadow-sm" id="name" name="name" placeholder="John Doe" required="" type="text"/>
+      <p class="text-red-600 text-sm mt-1 hidden" id="nameError" role="alert">
+       Please enter a name.
+      </p>
+     </div>
+     <div>
+      <label class="block font-semibold mb-2 text-indigo-800 tracking-wide" for="age">
+       Age
+      </label>
+      <input aria-describedby="ageError" class="w-full border border-indigo-300 rounded-xl px-5 py-3 focus:outline-none focus:ring-4 focus:ring-indigo-400 focus:border-indigo-600 transition shadow-sm" id="age" min="0" name="age" placeholder="30" required="" type="number"/>
+      <p class="text-red-600 text-sm mt-1 hidden" id="ageError" role="alert">
+       Please enter a valid age.
+      </p>
+     </div>
+     <div>
+      <label class="block font-semibold mb-2 text-indigo-800 tracking-wide" for="email">
+       Email
+      </label>
+      <input aria-describedby="emailError" class="w-full border border-indigo-300 rounded-xl px-5 py-3 focus:outline-none focus:ring-4 focus:ring-indigo-400 focus:border-indigo-600 transition shadow-sm" id="email" name="email" placeholder="john@example.com" required="" type="email"/>
+      <p class="text-red-600 text-sm mt-1 hidden" id="emailError" role="alert">
+       Please enter a valid email.
+      </p>
+     </div>
+     <div>
+      <label class="block font-semibold mb-2 text-indigo-800 tracking-wide" for="phone">
+       Phone
+      </label>
+      <input aria-describedby="phoneError" class="w-full border border-indigo-300 rounded-xl px-5 py-3 focus:outline-none focus:ring-4 focus:ring-indigo-400 focus:border-indigo-600 transition shadow-sm" id="phone" name="phone" pattern="^\+?[0-9\s\-]{7,15}$" placeholder="+1234567890" required="" type="tel"/>
+      <p class="text-red-600 text-sm mt-1 hidden" id="phoneError" role="alert">
+       Please enter a valid phone number.
+      </p>
+     </div>
+     <div>
+      <label class="block font-semibold mb-2 text-indigo-800 tracking-wide" for="bio">
+       Bio
+      </label>
+      <textarea aria-describedby="bioError" class="w-full border border-indigo-300 rounded-xl px-5 py-3 resize-none focus:outline-none focus:ring-4 focus:ring-indigo-400 focus:border-indigo-600 transition shadow-sm" id="bio" name="bio" placeholder="A short bio about yourself..." required="" rows="4"></textarea>
+      <p class="text-red-600 text-sm mt-1 hidden" id="bioError" role="alert">
+       Please enter a bio.
+      </p>
+     </div>
+     <div class="flex justify-end space-x-6 pt-6 border-t border-indigo-300">
+      <button class="px-7 py-3 rounded-xl bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold shadow-md focus:outline-none focus:ring-4 focus:ring-gray-400 transition" id="cancelBtn" type="button">
+       Cancel
+      </button>
+      <button class="px-7 py-3 rounded-xl btn-gradient-blue font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-600 transition" type="submit">
+       Save
+      </button>
+     </div>
+    </form>
+   </div>
+  </div>
+  <script>
+   const profilesContainer = document.getElementById("profiles");
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    const profileForm = document.getElementById("profileForm");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const modalTitle = document.getElementById("modalTitle");
+    const addProfileBtn = document.getElementById("addProfileBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const avatarUpload = document.getElementById("avatarUpload");
+    const avatarPreview = document.getElementById("avatarPreview");
+
+    // Mobile menu elements
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const mobileMenu = document.getElementById("mobileMenu");
+    const mobileAddProfileBtn = document.getElementById("mobileAddProfileBtn");
+    const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
+    const mobileProfilesLink = document.getElementById("mobileProfilesLink");
+
+    // Error message elements
+    const errors = {
+      name: document.getElementById("nameError"),
+      age: document.getElementById("ageError"),
+      email: document.getElementById("emailError"),
+      phone: document.getElementById("phoneError"),
+      bio: document.getElementById("bioError"),
+      avatar: document.getElementById("avatarError"),
+    };
+
+    // Local Storage Key
+    const STORAGE_KEY = "profileDashboardProfiles";
+
+    // Load profiles from localStorage or default
+    let profiles = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
+      {
+        id: 1,
+        name: "Alice Johnson",
+        age: 29,
+        email: "alice.johnson@example.com",
+        phone: "+12345678901",
+        bio: "Graphic designer with a passion for modern art and photography.",
+        avatar:
+          "https://placehold.co/110x110/png?text=Alice+J&font=roboto&fontSize=24&bg=7f9cf5&fg=ffffff",
+      },
+      {
+        id: 2,
+        name: "Brian Smith",
+        age: 35,
+        email: "brian.smith@example.com",
+        phone: "+19876543210",
+        bio: "Software engineer specializing in frontend development and UX design.",
+        avatar:
+          "https://placehold.co/110x110/png?text=Brian+S&font=roboto&fontSize=24&bg=f59e0b&fg=ffffff",
+      },
+      {
+        id: 3,
+        name: "Catherine Lee",
+        age: 42,
+        email: "catherine.lee@example.com",
+        phone: "+10987654321",
+        bio: "Marketing expert with over 15 years of experience in digital campaigns.",
+        avatar:
+          "https://placehold.co/110x110/png?text=Catherine+L&font=roboto&fontSize=24&bg=10b981&fg=ffffff",
+      },
+    ];
+
+    let editingProfileId = null;
+    let currentAvatarDataUrl = null;
+
+    // Save profiles to localStorage
+    function saveProfiles() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
+    }
+
+    function validateInput() {
+      let valid = true;
+
+      // Name validation
+      if (!profileForm.name.value.trim()) {
+        errors.name.classList.remove("hidden");
+        valid = false;
+      } else {
+        errors.name.classList.add("hidden");
+      }
+
+      // Age validation
+      const ageVal = Number(profileForm.age.value);
+      if (!profileForm.age.value || isNaN(ageVal) || ageVal < 0) {
+        errors.age.classList.remove("hidden");
+        valid = false;
+      } else {
+        errors.age.classList.add("hidden");
+      }
+
+      // Email validation (simple)
+      const emailVal = profileForm.email.value.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailVal || !emailRegex.test(emailVal)) {
+        errors.email.classList.remove("hidden");
+        valid = false;
+      } else {
+        errors.email.classList.add("hidden");
+      }
+
+      // Phone validation (pattern attribute)
+      const phoneVal = profileForm.phone.value.trim();
+      const phoneRegex = /^\+?[0-9\s\-]{7,15}$/;
+      if (!phoneVal || !phoneRegex.test(phoneVal)) {
+        errors.phone.classList.remove("hidden");
+        valid = false;
+      } else {
+        errors.phone.classList.add("hidden");
+      }
+
+      // Bio validation
+      if (!profileForm.bio.value.trim()) {
+        errors.bio.classList.remove("hidden");
+        valid = false;
+      } else {
+        errors.bio.classList.add("hidden");
+      }
+
+      // Avatar validation: must have a valid image data URL or existing URL
+      if (!currentAvatarDataUrl) {
+        errors.avatar.classList.remove("hidden");
+        valid = false;
+      } else {
+        errors.avatar.classList.add("hidden");
+      }
+
+      return valid;
+    }
+
+    function renderProfiles() {
+      profilesContainer.innerHTML = "";
+      if (profiles.length === 0) {
+        const emptyMsg = document.createElement("p");
+        emptyMsg.className =
+          "text-indigo-200 text-center col-span-full text-lg italic select-none";
+        emptyMsg.textContent =
+          "No profiles available. Add a new profile to get started.";
+        profilesContainer.appendChild(emptyMsg);
+        return;
+      }
+      profiles.forEach((profile) => {
+        const profileCard = document.createElement("article");
+        profileCard.className =
+          "profile-card p-8 flex flex-col items-center text-center relative";
+
+        profileCard.setAttribute("tabindex", "0");
+        profileCard.setAttribute("aria-label", `Profile card of ${profile.name}`);
+
+        profileCard.innerHTML = `
+          <img
+            src="${profile.avatar}"
+            alt="Avatar of ${profile.name}, a person with short hair and a friendly smile, wearing casual clothes"
+            class="w-28 h-28 rounded-full object-cover mb-6 border-4 border-indigo-600 shadow-lg"
+          />
+          <h3 class="text-2xl font-extrabold text-indigo-900 mb-2 tracking-wide">
+            ${profile.name}
+          </h3>
+          <p class="text-indigo-700 mb-1 text-lg font-semibold">
+            <span class="font-bold">Age:</span> ${profile.age}
+          </p>
+          <p class="text-indigo-700 mb-1 text-lg font-semibold">
+            <span class="font-bold">Email:</span> <a href="mailto:${profile.email}" class="text-indigo-600 hover:underline">${profile.email}</a>
+          </p>
+          <p class="text-indigo-700 mb-4 text-lg font-semibold">
+            <span class="font-bold">Phone:</span> <a href="tel:${profile.phone}" class="text-indigo-600 hover:underline">${profile.phone}</a>
+          </p>
+          <p class="text-indigo-800 mb-8 text-base font-medium max-w-xs mx-auto">
+            ${profile.bio}
+          </p>
+          <div class="flex space-x-6 justify-center w-full">
+            <button
+              class="flex items-center justify-center space-x-2 px-5 py-3 rounded-full btn-gradient-yellow font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-yellow-400 transition"
+              data-action="edit"
+              data-id="${profile.id}"
+              aria-label="Edit profile of ${profile.name}"
+              title="Edit"
+            >
+              <i class="fas fa-edit text-lg"></i><span class="sr-only">Edit</span>
+            </button>
+            <button
+              class="flex items-center justify-center space-x-2 px-5 py-3 rounded-full btn-gradient-red font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-red-600 transition"
+              data-action="delete"
+              data-id="${profile.id}"
+              aria-label="Delete profile of ${profile.name}"
+              title="Delete"
+            >
+              <i class="fas fa-trash-alt text-lg"></i><span class="sr-only">Delete</span>
+            </button>
+          </div>
+        `;
+
+        profilesContainer.appendChild(profileCard);
+      });
+    }
+
+    function openModal(edit = false, profile = null) {
+      modalBackdrop.classList.remove("hidden");
+      modalBackdrop.focus();
+      if (edit && profile) {
+        modalTitle.textContent = "Edit Profile";
+        profileForm.name.value = profile.name;
+        profileForm.age.value = profile.age;
+        profileForm.email.value = profile.email;
+        profileForm.phone.value = profile.phone;
+        profileForm.bio.value = profile.bio;
+        currentAvatarDataUrl = profile.avatar;
+        avatarPreview.src = profile.avatar;
+        avatarUpload.value = "";
+        editingProfileId = profile.id;
+      } else {
+        modalTitle.textContent = "Add Profile";
+        profileForm.reset();
+        currentAvatarDataUrl = null;
+        avatarPreview.src =
+          "https://placehold.co/110x110/png?text=Avatar&font=roboto&fontSize=24&bg=9ca3af&fg=ffffff";
+        avatarUpload.value = "";
+        editingProfileId = null;
+      }
+      clearErrors();
+    }
+
+    function closeModal() {
+      modalBackdrop.classList.add("hidden");
+      editingProfileId = null;
+      profileForm.reset();
+      currentAvatarDataUrl = null;
+      avatarPreview.src =
+        "https://placehold.co/110x110/png?text=Avatar&font=roboto&fontSize=24&bg=9ca3af&fg=ffffff";
+      avatarUpload.value = "";
+      clearErrors();
+    }
+
+    function clearErrors() {
+      Object.values(errors).forEach((el) => el.classList.add("hidden"));
+    }
+
+    profilesContainer.addEventListener("click", (e) => {
+      const editBtn = e.target.closest("button[data-action='edit']");
+      const deleteBtn = e.target.closest("button[data-action='delete']");
+
+      if (editBtn) {
+        const id = Number(editBtn.dataset.id);
+        const profile = profiles.find((p) => p.id === id);
+        if (profile) {
+          openModal(true, profile);
+          if (mobileMenu.classList.contains("block")) {
+            toggleMobileMenu();
+          }
+        }
+      }
+
+      if (deleteBtn) {
+        const id = Number(deleteBtn.dataset.id);
+        const profile = profiles.find((p) => p.id === id);
+        if (profile) {
+          if (
+            confirm(
+              `Are you sure you want to delete the profile of ${profile.name}?`
+            )
+          ) {
+            profiles = profiles.filter((p) => p.id !== id);
+            saveProfiles();
+            renderProfiles();
+            if (mobileMenu.classList.contains("block")) {
+              toggleMobileMenu();
+            }
+          }
+        }
+      }
+    });
+
+    cancelBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeModal();
+    });
+
+    modalBackdrop.addEventListener("click", (e) => {
+      if (e.target === modalBackdrop) {
+        closeModal();
+      }
+    });
+
+    profileForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      if (!validateInput()) return;
+
+      const formData = new FormData(profileForm);
+      const updatedProfile = {
+        id: editingProfileId || Date.now(),
+        name: formData.get("name").trim(),
+        age: Number(formData.get("age")),
+        email: formData.get("email").trim(),
+        phone: formData.get("phone").trim(),
+        bio: formData.get("bio").trim(),
+        avatar: currentAvatarDataUrl,
+      };
+
+      if (editingProfileId) {
+        profiles = profiles.map((p) =>
+          p.id === editingProfileId ? updatedProfile : p
+        );
+      } else {
+        profiles.push(updatedProfile);
+      }
+
+      saveProfiles();
+      renderProfiles();
+      closeModal();
+    });
+
+    addProfileBtn.addEventListener("click", () => {
+      openModal(false, null);
+      if (mobileMenu.classList.contains("block")) {
+        toggleMobileMenu();
+      }
+    });
+
+    logoutBtn.addEventListener("click", () => {
+      if (confirm("Are you sure you want to log out?")) {
+        alert("You have been logged out.");
+        location.reload();
+      }
+    });
+
+    avatarUpload.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) {
+        currentAvatarDataUrl = null;
+        avatarPreview.src =
+          "https://placehold.co/110x110/png?text=Avatar&font=roboto&fontSize=24&bg=9ca3af&fg=ffffff";
+        errors.avatar.classList.remove("hidden");
+        return;
+      }
+      if (!file.type.startsWith("image/")) {
+        currentAvatarDataUrl = null;
+        avatarPreview.src =
+          "https://placehold.co/110x110/png?text=Avatar&font=roboto&fontSize=24&bg=9ca3af&fg=ffffff";
+        errors.avatar.classList.remove("hidden");
+        return;
+      }
+      errors.avatar.classList.add("hidden");
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        currentAvatarDataUrl = event.target.result;
+        avatarPreview.src = currentAvatarDataUrl;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+      if (mobileMenu.classList.contains("hidden")) {
+        mobileMenu.classList.remove("hidden");
+        mobileMenu.classList.add("block");
+        mobileMenuBtn.setAttribute("aria-expanded", "true");
+      } else {
+        mobileMenu.classList.add("hidden");
+        mobileMenu.classList.remove("block");
+        mobileMenuBtn.setAttribute("aria-expanded", "false");
+      }
+    }
+
+    mobileMenuBtn.addEventListener("click", () => {
+      toggleMobileMenu();
+    });
+
+    mobileAddProfileBtn.addEventListener("click", () => {
+      openModal(false, null);
+      toggleMobileMenu();
+    });
+
+    mobileLogoutBtn.addEventListener("click", () => {
+      if (confirm("Are you sure you want to log out?")) {
+        alert("You have been logged out.");
+        location.reload();
+      }
+    });
+
+    mobileProfilesLink.addEventListener("click", () => {
+      toggleMobileMenu();
+    });
+
+    // Keyboard accessibility: trap focus inside modal when open
+    document.addEventListener("keydown", (e) => {
+      if (!modalBackdrop.classList.contains("hidden")) {
+        const focusableElements = modalBackdrop.querySelectorAll(
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstEl = focusableElements[0];
+        const lastEl = focusableElements[focusableElements.length - 1];
+
+        if (e.key === "Tab") {
+          if (e.shiftKey) {
+            if (document.activeElement === firstEl) {
+              e.preventDefault();
+              lastEl.focus();
+            }
+          } else {
+            if (document.activeElement === lastEl) {
+              e.preventDefault();
+              firstEl.focus();
+            }
+          }
+        } else if (e.key === "Escape") {
+          closeModal();
+        }
+      }
+    });
+
+    // Initial render
+    renderProfiles();
+  </script>
+ </body>
+</html>
